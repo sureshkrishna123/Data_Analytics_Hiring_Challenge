@@ -5,9 +5,9 @@ import pandas as pd
 # Load the trained model
 model = joblib.load('linear_regression_model.joblib')
 
-# Predefined mean and std for temperature normalization (same as used during training)
-portable_temp_mean = 30.0  # Example mean, replace with your actual mean
-portable_temp_std = 10.0   # Example std, replace with your actual std
+# Predefined mean and std for temperature normalization (use actual values from your training data)
+portable_temp_mean = 30.0  # Example mean value, replace with your actual mean
+portable_temp_std = 10.0   # Example std value, replace with your actual std
 
 # Function to make predictions
 def predict_effective_soc(features):
@@ -32,6 +32,8 @@ fixed_battery_temperatures = st.number_input("Fixed Battery Temperatures (°C)",
 
 # Calculate additional features
 voltage_difference = fixed_battery_voltage - portable_battery_voltage
+
+# Normalize portable battery temperature using predefined mean and std
 normalized_portable_temp = (portable_battery_temperatures - portable_temp_mean) / portable_temp_std
 
 # Button to predict
@@ -49,7 +51,7 @@ if st.button("Predict Effective SOC"):
         "Voltage Difference": voltage_difference,
         "Normalized Portable Temp": normalized_portable_temp,
     }
-    
+
     # Make prediction and display the result
     try:
         predicted_soc = predict_effective_soc(features)
