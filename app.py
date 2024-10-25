@@ -1,3 +1,4 @@
+
 import streamlit as st
 import joblib
 import pandas as pd
@@ -39,5 +40,9 @@ if st.button("Predict Effective SOC"):
         "Fixed Battery Temperatures": fixed_battery_temperatures,
     }
     
-    predicted_soc = predict_effective_soc(features)
-    st.success(f"Predicted Effective SOC: {predicted_soc:.2f}")
+    # Ensure that the features dictionary has the same keys as the model was trained with
+    try:
+        predicted_soc = predict_effective_soc(features)
+        st.success(f"Predicted Effective SOC: {predicted_soc:.2f}")
+    except Exception as e:
+        st.error(f"Error in prediction: {str(e)}")
