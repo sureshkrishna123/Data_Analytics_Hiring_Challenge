@@ -1,70 +1,52 @@
 import streamlit as st
-import joblib
 import pandas as pd
+import joblib
 
-# Load the trained model
-model = joblib.load('linear_regression_model.joblib')
+# Load the trained linear regression model
+model = joblib.load(r"C:\Users\Sankeerthi\Downloads\linear_regression_model.joblib")
 
-# Predefined mean and std for temperature normalization (replace with actual values from training data)
-portable_temp_mean = 30.0  # Example mean value
-portable_temp_std = 10.0   # Example std value
+# Streamlit app setup
+st.title("Effective SOC Prediction App")
+st.write("Enter the input values for all required features to predict the Effective SOC.")
 
-# Function to make predictions
-def predict_effective_soc(features):
-    # Convert features to DataFrame in the correct order
-    feature_order = [
-        "Fixed Battery Voltage",
-        "Portable Battery Voltage",
-        "Portable Battery Current",
-        "Fixed Battery Current",
-        "Motor Status (On/Off)",
-        "BCM Battery Selected",
-        "Portable Battery Temperatures",
-        "Fixed Battery Temperatures",
-        "Voltage Difference",
-        "Normalized Portable Temp",
+# Input fields for all 8 features
+fixed_voltage = st.number_input("Fixed Battery Voltage", value=3.7, format="%.2f")
+portable_voltage = st.number_input("Portable Battery Voltage", value=3.6, format="%.2f")
+portable_temp = st.number_input("Portable Battery Temperatures", value=25.0, format="%.2f")
+fixed_temp = st.number_input("Fixed Battery Temperatures", value=25.0, format="%.2f")
+bcm_selected = st.selectbox("BCM Battery Selected (1 for Yes, 0 for No)", [0, 1])
+motor_status = st.selectbox("Motor Status (On/Off - 1 for On, 0 for Off)", [0, 1])
+
+# Calculate 'Voltage Difference' as a derived feature
+voltage_diff = fixed_voltage - portable_voltage
+
+# Display the derived feature value for user's reference
+st.write(f"Voltage Difference (Fixed - Portable): {voltage_diff:.2f}")
+
+# Prepare the input data with all features
+input_data = pd.DataFrame(
+    [[fixed_voltage, portable_voltage, portable_temp, fixed_temp, 
+      bcm_selected, motor_status, voltage_diff]],
+    columns=[
+        'Fixed Battery Voltage', 
+        'Portable Battery Voltage', 
+        'Portable Battery Temperatures', 
+        'Fixed Battery Temperatures', 
+        'BCM Battery Selected', 
+        'Motor Status (On/Off)', 
+        'Voltage Difference'
     ]
-    features_df = pd.DataFrame([features], columns=feature_order)
-    prediction = model.predict(features_df)
-    return prediction[0]
+)
 
-# Streamlit UI
-st.title("Effective SOC Predictor")
-st.write("Enter the following values:")
+# Show the input data in the app for verification
+st.write("Input Data Preview:")
+st.dataframe(input_data)
 
-# User input for features
-fixed_battery_voltage = st.number_input("Fixed Battery Voltage (V)", min_value=0.0)
-portable_battery_voltage = st.number_input("Portable Battery Voltage (V)", min_value=0.0)
-portable_battery_current = st.number_input("Portable Battery Current (A)", min_value=0.0)
-fixed_battery_current = st.number_input("Fixed Battery Current (A)", min_value=0.0)
-motor_status = st.selectbox("Motor Status (On/Off)", ["0", "1"])  # 0 for Off, 1 for On
-bcm_battery_selected = st.selectbox("BCM Battery Selected (0/1)", ["0", "1"])  # 0 for Not Selected, 1 for Selected
-portable_battery_temperatures = st.number_input("Portable Battery Temperatures (°C)", min_value=-40.0, max_value=100.0)
-fixed_battery_temperatures = st.number_input("Fixed Battery Temperatures (°C)", min_value=-40.0, max_value=100.0)
-
-# Calculate additional features
-voltage_difference = fixed_battery_voltage - portable_battery_voltage
-normalized_portable_temp = (portable_battery_temperatures - portable_temp_mean) / portable_temp_std
-
-# Button to predict
+# Make a prediction when the button is clicked
 if st.button("Predict Effective SOC"):
-    # Create the feature dictionary in the correct order
-    features = {
-        "Fixed Battery Voltage": fixed_battery_voltage,
-        "Portable Battery Voltage": portable_battery_voltage,
-        "Portable Battery Current": portable_battery_current,
-        "Fixed Battery Current": fixed_battery_current,
-        "Motor Status (On/Off)": int(motor_status),
-        "BCM Battery Selected": int(bcm_battery_selected),
-        "Portable Battery Temperatures": portable_battery_temperatures,
-        "Fixed Battery Temperatures": fixed_battery_temperatures,
-        "Voltage Difference": voltage_difference,
-        "Normalized Portable Temp": normalized_portable_temp,
-    }
-
-    # Make prediction and display the result
     try:
-        predicted_soc = predict_effective_soc(features)
-        st.success(f"Predicted Effective SOC: {predicted_soc:.2f}")
+        # Perform the prediction
+        soc_prediction = model.predict(input_data)
+        st.success(f"Predicted Effective SOC: {soc_prediction[0]:.2f}")
     except Exception as e:
-        st.error(f"Error in prediction: {str(e)}")
+        st.error(f"An error occurred during prediction: {e}")
