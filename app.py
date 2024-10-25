@@ -1,4 +1,3 @@
-
 import streamlit as st
 import joblib
 import pandas as pd
@@ -27,6 +26,14 @@ bcm_battery_selected = st.selectbox("BCM Battery Selected (0/1)", ["0", "1"])  #
 portable_battery_temperatures = st.number_input("Portable Battery Temperatures (°C)", min_value=-40.0, max_value=100.0)
 fixed_battery_temperatures = st.number_input("Fixed Battery Temperatures (°C)", min_value=-40.0, max_value=100.0)
 
+# Calculate 'Voltage Difference'
+voltage_difference = fixed_battery_voltage - portable_battery_voltage
+
+# Calculate 'Normalized Portable Temp'
+normalized_portable_temp = (
+    portable_battery_temperatures - portable_battery_temperatures.mean()
+) / portable_battery_temperatures.std()
+
 # Button to predict
 if st.button("Predict Effective SOC"):
     features = {
@@ -38,6 +45,8 @@ if st.button("Predict Effective SOC"):
         "BCM Battery Selected": int(bcm_battery_selected),  # Convert string to int
         "Portable Battery Temperatures": portable_battery_temperatures,
         "Fixed Battery Temperatures": fixed_battery_temperatures,
+        "Voltage Difference": voltage_difference,
+        "Normalized Portable Temp": normalized_portable_temp,
     }
     
     # Ensure that the features dictionary has the same keys as the model was trained with
