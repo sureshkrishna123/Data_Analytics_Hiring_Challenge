@@ -3,7 +3,7 @@ import pandas as pd
 import joblib
 
 # Load the trained model
-model = joblib.load(r"C:\Users\Sankeerthi\Downloads\linear_regression_model.joblib")
+model = joblib.load(r"linear_regression_model.joblib")
 
 # Streamlit app setup
 st.title("Effective SOC Prediction App")
