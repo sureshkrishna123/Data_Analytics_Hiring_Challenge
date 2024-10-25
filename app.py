@@ -5,14 +5,26 @@ import pandas as pd
 # Load the trained model
 model = joblib.load('linear_regression_model.joblib')
 
-# Predefined mean and std for temperature normalization (use actual values from your training data)
-portable_temp_mean = 30.0  # Example mean value, replace with your actual mean
-portable_temp_std = 10.0   # Example std value, replace with your actual std
+# Predefined mean and std for temperature normalization (replace with actual values from training data)
+portable_temp_mean = 30.0  # Example mean value
+portable_temp_std = 10.0   # Example std value
 
 # Function to make predictions
 def predict_effective_soc(features):
-    # Convert features into DataFrame for prediction
-    features_df = pd.DataFrame(features, index=[0])
+    # Convert features to DataFrame in the correct order
+    feature_order = [
+        "Fixed Battery Voltage",
+        "Portable Battery Voltage",
+        "Portable Battery Current",
+        "Fixed Battery Current",
+        "Motor Status (On/Off)",
+        "BCM Battery Selected",
+        "Portable Battery Temperatures",
+        "Fixed Battery Temperatures",
+        "Voltage Difference",
+        "Normalized Portable Temp",
+    ]
+    features_df = pd.DataFrame([features], columns=feature_order)
     prediction = model.predict(features_df)
     return prediction[0]
 
@@ -32,13 +44,11 @@ fixed_battery_temperatures = st.number_input("Fixed Battery Temperatures (°C)",
 
 # Calculate additional features
 voltage_difference = fixed_battery_voltage - portable_battery_voltage
-
-# Normalize portable battery temperature using predefined mean and std
 normalized_portable_temp = (portable_battery_temperatures - portable_temp_mean) / portable_temp_std
 
 # Button to predict
 if st.button("Predict Effective SOC"):
-    # Create the feature dictionary
+    # Create the feature dictionary in the correct order
     features = {
         "Fixed Battery Voltage": fixed_battery_voltage,
         "Portable Battery Voltage": portable_battery_voltage,
