@@ -5,6 +5,10 @@ import pandas as pd
 # Load the trained model
 model = joblib.load('linear_regression_model.joblib')
 
+# Predefined mean and std for temperature normalization (same as used during training)
+portable_temp_mean = 30.0  # Example mean, replace with your actual mean
+portable_temp_std = 10.0   # Example std, replace with your actual std
+
 # Function to make predictions
 def predict_effective_soc(features):
     # Convert features into DataFrame for prediction
@@ -26,30 +30,27 @@ bcm_battery_selected = st.selectbox("BCM Battery Selected (0/1)", ["0", "1"])  #
 portable_battery_temperatures = st.number_input("Portable Battery Temperatures (°C)", min_value=-40.0, max_value=100.0)
 fixed_battery_temperatures = st.number_input("Fixed Battery Temperatures (°C)", min_value=-40.0, max_value=100.0)
 
-# Calculate 'Voltage Difference'
+# Calculate additional features
 voltage_difference = fixed_battery_voltage - portable_battery_voltage
-
-# Calculate 'Normalized Portable Temp'
-normalized_portable_temp = (
-    portable_battery_temperatures - portable_battery_temperatures.mean()
-) / portable_battery_temperatures.std()
+normalized_portable_temp = (portable_battery_temperatures - portable_temp_mean) / portable_temp_std
 
 # Button to predict
 if st.button("Predict Effective SOC"):
+    # Create the feature dictionary
     features = {
         "Fixed Battery Voltage": fixed_battery_voltage,
         "Portable Battery Voltage": portable_battery_voltage,
         "Portable Battery Current": portable_battery_current,
         "Fixed Battery Current": fixed_battery_current,
-        "Motor Status (On/Off)": int(motor_status),  # Convert string to int
-        "BCM Battery Selected": int(bcm_battery_selected),  # Convert string to int
+        "Motor Status (On/Off)": int(motor_status),
+        "BCM Battery Selected": int(bcm_battery_selected),
         "Portable Battery Temperatures": portable_battery_temperatures,
         "Fixed Battery Temperatures": fixed_battery_temperatures,
         "Voltage Difference": voltage_difference,
         "Normalized Portable Temp": normalized_portable_temp,
     }
     
-    # Ensure that the features dictionary has the same keys as the model was trained with
+    # Make prediction and display the result
     try:
         predicted_soc = predict_effective_soc(features)
         st.success(f"Predicted Effective SOC: {predicted_soc:.2f}")
