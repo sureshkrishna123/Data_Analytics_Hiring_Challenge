@@ -9,6 +9,7 @@ model = joblib.load(r"linear_regression_model.joblib")
 st.title("Effective SOC Prediction App")
 st.write("Enter the required inputs to predict the Effective SOC.")
 
+
 # Input fields for all required features
 fixed_voltage = st.number_input("Fixed Battery Voltage", value=3.7, format="%.2f")
 portable_voltage = st.number_input("Portable Battery Voltage", value=3.6, format="%.2f")
@@ -42,9 +43,8 @@ input_data = pd.DataFrame(
     ]
 )
 
-# Display the input data for verification
-st.write("Input Data Preview:")
-st.dataframe(input_data)
+
+
 
 # Perform prediction when the button is clicked
 if st.button("Predict Effective SOC"):
